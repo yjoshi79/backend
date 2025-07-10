@@ -49,7 +49,8 @@ def generate_itinerary():
             return jsonify({"itinerary": "Error from Hugging Face API"}), 500
 
         print("Raw HF response text:", res.text)  # Debugging line
-
+        print("HF STATUS CODE:", res.status_code)
+        print("HF RAW RESPONSE:", res.text)
         output = res.json()
 
         if isinstance(output, list):
