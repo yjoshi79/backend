@@ -6,11 +6,6 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-client = InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.3",
-    token=os.getenv("HF_TOKEN")
-)
-
 @app.route('/api/generate-itinerary', methods=['POST'])
 def generate_itinerary():
     data = request.json
@@ -21,22 +16,29 @@ def generate_itinerary():
 
     prompt = (
         f"Create a detailed travel itinerary for {days} days in {destination} "
-        f"with a {budget} budget, traveling with {companions}."
+        f"for a {budget} budget, traveling with {companions}."
     )
 
     try:
-        # ✅ Corrected keyword: max_tokens
-        response = client.chat_completion(
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
+        token = os.getenv("HF_TOKEN")
+        client = InferenceClient(
+            model="mistralai/Mistral-7B-Instruct-v0.3",
+            token=token
+        )
+
+        response = client.text_generation(
+            prompt=prompt,
             max_tokens=600,
             temperature=0.7
         )
-        return jsonify({"itinerary": response.choices[0].message.content})
+
+        return jsonify({"itinerary": response}), 200
+
     except Exception as e:
         print("InferenceClient error:", e)
-        return jsonify({"itinerary": "Error generating itinerary."}), 500
+        return jsonify({"itinerary": "Error generating itinerary"}), 500
+
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
