@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from huggingface_hub import InferenceClient
 import os
+import requests
 import traceback
 
 app = Flask(__name__)
@@ -21,23 +21,39 @@ def generate_itinerary():
     )
 
     try:
-        token = os.getenv("HF_TOKEN")
-        client = InferenceClient(
-            model="tiiuae/falcon-7b-instruct",  # ✅ yeh model supports text-generation
-            token=token
+        HF_TOKEN = os.getenv("HF_TOKEN")
+        headers = {
+            "Authorization": f"Bearer {HF_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 600,
+                "temperature": 0.7
+            }
+        }
+
+        res = requests.post(
+            "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct",
+            headers=headers,
+            json=payload
         )
 
-        response = client.text_generation(
-            prompt=prompt,
-            max_new_tokens=600,  # ✅ sahi keyword
-            temperature=0.7
-        )
+        output = res.json()
 
-        return jsonify({"itinerary": response}), 200
+        if isinstance(output, list):
+            text = output[0].get("generated_text", "No response")
+        elif isinstance(output, dict):
+            text = output.get("generated_text", "No response")
+        else:
+            text = "Unexpected response format"
+
+        return jsonify({"itinerary": text}), 200
 
     except Exception as e:
         traceback.print_exc()
-        print("InferenceClient error:", e)
         return jsonify({"itinerary": "Error generating itinerary"}), 500
 
 if __name__ == '__main__':
