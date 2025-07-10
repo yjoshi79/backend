@@ -29,7 +29,7 @@ def generate_itinerary():
 
         response = client.text_generation(
             prompt=prompt,
-            max_tokens=600,
+            max_new_tokens=600,
             temperature=0.7
         )
 
