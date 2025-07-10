@@ -36,7 +36,7 @@ def generate_itinerary():
         }
 
         res = requests.post(
-            "https://api-inference.huggingface.co/models/google/flan-t5-large"
+            "https://api-inference.huggingface.co/models/google/flan-ul2",
 ,
             headers=headers,
             json=payload
