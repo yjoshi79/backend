@@ -41,6 +41,14 @@ def generate_itinerary():
             json=payload
         )
 
+        # ✅ Check response before parsing JSON
+        if res.status_code != 200:
+            print("HuggingFace API error:", res.status_code)
+            print("Response text:", res.text)
+            return jsonify({"itinerary": "Error from Hugging Face API"}), 500
+
+        print("Raw HF response text:", res.text)  # Debugging line
+
         output = res.json()
 
         if isinstance(output, list):
